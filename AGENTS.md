@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Notes persistence
+- Load shared notes through public TanStack server functions using a publishable Supabase client with RLS, never an admin client; anonymous access must stay constrained by database grants and policies.
