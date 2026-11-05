@@ -18,7 +18,7 @@ on:
   push:
     branches: [main, staging]
   pull_request:
-  
+
 
 permissions:
   contents: read
@@ -139,3 +139,19 @@ jobs:
             } else {
               await github.rest.issues.createComment({ owner, repo, issue_number, body: cuerpo });
             }
+
+      - name: 9. Comprobar que la web responde
+        env:
+          URL: ${{ steps.publicar.outputs.url }}
+        run: |
+          # Verde no significa que funcione: si la web publicada da error, el check sale en rojo.
+          for intento in 1 2 3 4 5 6; do
+            codigo=$(curl -s -o /dev/null -m 15 -w '%{http_code}' "$URL/" || true)
+            if [ "$codigo" -ge 200 ] && [ "$codigo" -lt 500 ]; then
+              echo "La web responde ($codigo): $URL"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::La web se ha publicado, pero da error ($codigo): $URL"
+          exit 1
