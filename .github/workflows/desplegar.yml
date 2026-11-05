@@ -18,6 +18,7 @@ on:
   push:
     branches: [main, staging]
   pull_request:
+  
 
 permissions:
   contents: read
@@ -97,13 +98,20 @@ jobs:
           ALIAS: ${{ steps.destino.outputs.alias }}
         run: |
           set -o pipefail
+          # El servidor de la app también necesita los valores públicos de Supabase
+          # que Lovable guarda en .env. Sin ellos, la web publicada da error 500.
+          VARS=()
+          for nombre in SUPABASE_URL SUPABASE_PUBLISHABLE_KEY; do
+            valor=$(grep -E "^$nombre=" .env 2>/dev/null | cut -d= -f2- | tr -d '"\r' || true)
+            if [ -n "$valor" ]; then VARS+=(--var "$nombre:$valor"); fi
+          done
           if [ "$MODO" = "produccion" ]; then
             # Producción: publica la nueva versión para todos los usuarios
-            npx --yes wrangler@4.151.3 deploy | tee salida.txt
+            npx --yes wrangler@4.151.3 deploy "${VARS[@]}" | tee salida.txt
             url=$(grep -oE 'https://[^ ]+\.workers\.dev' salida.txt | head -1)
           else
             # Staging / preview: sube una versión SIN tocar producción, con su propia URL
-            npx --yes wrangler@4.151.3 versions upload --preview-alias "$ALIAS" | tee salida.txt
+            npx --yes wrangler@4.151.3 versions upload --preview-alias "$ALIAS" "${VARS[@]}" | tee salida.txt
             url=$(grep -oE 'Version Preview Alias URL: https://[^ ]+' salida.txt | sed 's/.*: //' || true)
             if [ -z "$url" ]; then
               url=$(grep -oE 'Version Preview URL: https://[^ ]+' salida.txt | sed 's/.*: //')
