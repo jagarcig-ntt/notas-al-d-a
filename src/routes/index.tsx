@@ -8,9 +8,9 @@ import { saveNote } from "@/lib/notes.functions";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Notas — Apunta lo importante" },
+      { title: "Mis notas del ensayo" },
       { name: "description", content: "Una app sencilla para crear y guardar notas con título y texto." },
-      { property: "og:title", content: "Notas — Apunta lo importante" },
+      { property: "og:title", content: "Mis notas del ensayo" },
       { property: "og:description", content: "Una app sencilla para crear y guardar notas con título y texto." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -44,7 +44,7 @@ function Index() {
   return (
     <main className="min-h-screen bg-background px-4 py-12">
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-display text-5xl text-foreground">Notas</h1>
+        <h1 className="font-display text-5xl text-foreground">Mis notas del ensayo</h1>
         <p className="mt-2 text-muted-foreground">Apunta lo importante.</p>
 
         <form onSubmit={add} className="mt-8 space-y-3 rounded-lg border bg-card p-5 shadow-paper">
