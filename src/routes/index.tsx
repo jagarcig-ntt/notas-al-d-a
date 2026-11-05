@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { notesQuery } from "@/lib/notes-query";
+import { saveNote } from "@/lib/notes.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -12,35 +16,29 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(notesQuery),
   component: Index,
 });
 
-type Note = { id: string; title: string; body: string; createdAt: number };
-const KEY = "notas-app";
-
 function Index() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const { data: notes } = useSuspenseQuery(notesQuery);
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const save = useMutation({
+    mutationFn: (data: { titulo: string; texto: string }) => saveNote({ data }),
+    onSuccess: (note) => {
+      queryClient.setQueryData(notesQuery.queryKey, (previous) => [note, ...(previous || [])]);
+      setTitle("");
+      setBody("");
+      void queryClient.invalidateQueries({ queryKey: notesQuery.queryKey });
+    },
+  });
 
-  useEffect(() => {
-    try {
-      setNotes(JSON.parse(localStorage.getItem(KEY) || "[]"));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (loaded) localStorage.setItem(KEY, JSON.stringify(notes));
-  }, [notes, loaded]);
-
-  const add = (e: React.FormEvent) => {
+  const add = (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim() && !body.trim()) return;
-    setNotes([{ id: crypto.randomUUID(), title: title.trim(), body: body.trim(), createdAt: Date.now() }, ...notes]);
-    setTitle("");
-    setBody("");
+    if (save.isPending || (!title.trim() && !body.trim())) return;
+    save.mutate({ titulo: title.trim(), texto: body.trim() });
   };
 
   return (
@@ -54,41 +52,40 @@ function Index() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título"
+            aria-label="Título"
+            disabled={save.isPending}
             className="w-full rounded-md border bg-background px-3 py-2 text-lg font-semibold text-foreground outline-none focus:ring-2 focus:ring-ring"
           />
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Escribe tu nota…"
+            aria-label="Texto"
+            disabled={save.isPending}
             rows={4}
             className="w-full resize-y rounded-md border bg-background px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-ring"
           />
-          <button
+          <Button
             type="submit"
-            className="rounded-md bg-primary px-5 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            disabled={save.isPending || (!title.trim() && !body.trim())}
           >
-            Guardar nota
-          </button>
+            {save.isPending ? "Guardando…" : "Guardar nota"}
+          </Button>
+          {save.isError && <p role="alert" className="text-sm text-destructive">No se pudo guardar la nota. Inténtalo de nuevo.</p>}
         </form>
 
         <ul className="mt-10 space-y-4">
-          {loaded && notes.length === 0 && (
+          {notes.length === 0 && (
             <li className="text-center text-muted-foreground">Aún no hay notas.</li>
           )}
           {notes.map((n) => (
             <li key={n.id} className="group rounded-lg border bg-card p-5 shadow-paper">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-xl font-semibold text-card-foreground">{n.title || "Sin título"}</h2>
-                <button
-                  onClick={() => setNotes(notes.filter((x) => x.id !== n.id))}
-                  className="text-sm text-muted-foreground hover:text-destructive"
-                >
-                  Borrar
-                </button>
+                <h2 className="break-words text-xl font-semibold text-card-foreground">{n.titulo || "Sin título"}</h2>
               </div>
-              {n.body && <p className="mt-2 whitespace-pre-wrap text-card-foreground/80">{n.body}</p>}
+              {n.texto && <p className="mt-2 whitespace-pre-wrap break-words text-card-foreground/80">{n.texto}</p>}
               <p className="mt-3 text-xs text-muted-foreground">
-                {new Date(n.createdAt).toLocaleString("es-ES")}
+                {new Date(n.created_at).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}
               </p>
             </li>
           ))}
