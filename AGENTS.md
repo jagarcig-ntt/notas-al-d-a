@@ -30,4 +30,5 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Notes persistence
-- Load shared notes through public TanStack server functions using a publishable Supabase client with RLS, never an admin client; anonymous access must stay constrained by database grants and policies.
+- Load and save owner-scoped notes through authenticated TanStack server functions and the middleware's RLS client, never an admin client; private pages live under the client-only authenticated layout.
+- Register the browser bearer attacher in Start and one identity-transition subscriber in the root; sign-out cancels and clears queries before clearing the session to avoid leaking cached notes.
