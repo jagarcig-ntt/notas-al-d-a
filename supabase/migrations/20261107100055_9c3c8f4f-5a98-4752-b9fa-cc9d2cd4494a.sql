@@ -1,0 +1,1 @@
+ALTER TABLE public.notas_ensayo ADD COLUMN categoria text;
