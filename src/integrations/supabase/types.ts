@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       notas_ensayo: {
         Row: {
+          categoria: string | null
           created_at: string
           id: string
           texto: string
@@ -23,6 +24,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          categoria?: string | null
           created_at?: string
           id?: string
           texto?: string
@@ -30,6 +32,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          categoria?: string | null
           created_at?: string
           id?: string
           texto?: string
