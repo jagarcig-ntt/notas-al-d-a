@@ -7,9 +7,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Mis notas del ensayo 2" },
-      { name: "description", content: "Una app sencilla para crear y guardar notas con título y texto." },
+      { name: "description", content: "Accede a tu cuenta para crear y guardar tus notas privadas." },
       { property: "og:title", content: "Mis notas del ensayo 2" },
-      { property: "og:description", content: "Una app sencilla para crear y guardar notas con título y texto." },
+      { property: "og:description", content: "Accede a tu cuenta para crear y guardar tus notas privadas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
