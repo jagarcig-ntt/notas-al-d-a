@@ -7,17 +7,17 @@ const client = createClient("https://cewuvlymayskfmotcvau.supabase.co", "sb_publ
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
 
-describe("Public notas_ensayo", () => {
-  it("allows anyone to read notes without a session", async () => {
+describe("Private notas_ensayo", () => {
+  it("denies reading notes without a session", async () => {
     const { data, error } = await client.from("notas_ensayo").select("id, titulo, texto").limit(1);
-    expect(error).toBeNull();
-    expect(Array.isArray(data)).toBe(true);
+    expect(error?.code).toBe("42501");
+    expect(data).toBeNull();
   });
-  it("allows anyone to add notes without a session", async () => {
+  it("denies adding notes without a session", async () => {
     const input = { titulo: "Prueba de conexión", texto: "Nota de prueba pública guardada en Supabase." };
     const { data, error } = await client.from("notas_ensayo").insert(input).select("titulo, texto").single();
-    expect(error).toBeNull();
-    expect(data).toEqual(input);
+    expect(error?.code).toBe("42501");
+    expect(data).toBeNull();
   });
   it("rejects empty notes", () => {
     expect(noteInput.safeParse({ titulo: " ", texto: " " }).success).toBe(false);

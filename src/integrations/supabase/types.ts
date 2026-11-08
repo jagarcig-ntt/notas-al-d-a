@@ -22,6 +22,7 @@ export type Database = {
           texto: string
           titulo: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           categoria?: string | null
@@ -30,6 +31,7 @@ export type Database = {
           texto?: string
           titulo?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           categoria?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           texto?: string
           titulo?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -1,0 +1,11 @@
+ALTER TABLE public.notas_ensayo ADD COLUMN user_id uuid DEFAULT auth.uid();
+CREATE INDEX notas_ensayo_user_id_idx ON public.notas_ensayo(user_id);
+DROP POLICY "Anyone can add notes" ON public.notas_ensayo;
+DROP POLICY "Anyone can read notes" ON public.notas_ensayo;
+REVOKE ALL ON public.notas_ensayo FROM anon;
+REVOKE UPDATE, DELETE ON public.notas_ensayo FROM authenticated;
+GRANT SELECT, INSERT ON public.notas_ensayo TO authenticated;
+GRANT ALL ON public.notas_ensayo TO service_role;
+ALTER TABLE public.notas_ensayo ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can read own notes" ON public.notas_ensayo FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Users can add own notes" ON public.notas_ensayo FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
